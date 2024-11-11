@@ -9,3 +9,6 @@ Route::get('/user', function (Request $request) {
 
 // post
 Route::apiResource('/posts', App\Http\Controllers\Api\PostController::class);
+
+// fishing
+Route::apiResource('/fishings', App\Http\Controllers\Api\FishingController::class);
