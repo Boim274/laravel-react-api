@@ -13,7 +13,7 @@ class Fishing extends Model
     protected $fillable = [
         'nama',
         'deskripsi',
-        'gambar',
+        'image',
         'harga',
         'lokasi',
     ];

@@ -21,41 +21,34 @@ class FishingController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
     {
-        $Validator = Validator ::make($request->all(), [
+        $validator = Validator::make($request->all(), [
             'nama' => 'required',
             'deskripsi' => 'required',
-            'gambar' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'harga' => 'required',
             'lokasi' => 'required',
         ]);
 
-        if ($Validator->fails()) {
-            return response()->json($Validator->errors(), 422);
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
         }
 
-        $image = $request->file('gambar');
+        $image = $request->file('image');
         $image->storeAs('public/fishings', $image->hashName());
 
         $fishing = Fishing::create([
             'nama' => $request->nama,
             'deskripsi' => $request->deskripsi,
-            'gambar' => $image->hashName(),
+            'image' => $image->hashName(),
             'harga' => $request->harga,
-            'lokasi' => $request->lokasi
+            'lokasi' => $request->lokasi,
         ]);
-        return new FishingResource(true, 'Data Fishing Berhasil Di Tambahkan', $fishing);
+
+        return new FishingResource(true, 'Data Fishing Berhasil Ditambahkan', $fishing);
     }
 
     /**
@@ -64,15 +57,12 @@ class FishingController extends Controller
     public function show(string $id)
     {
         $fishing = Fishing::find($id);
-        return new FishingResource(true, 'Detail Data Ikan', $fishing);
-    }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
+        if (!$fishing) {
+            return response()->json(['message' => 'Data Ikan tidak ditemukan'], 404);
+        }
+
+        return new FishingResource(true, 'Detail Data Ikan', $fishing);
     }
 
     /**
@@ -80,40 +70,46 @@ class FishingController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $Validator = Validator ::make($request->all(), [
+        $validator = Validator::make($request->all(), [
             'nama' => 'required',
             'deskripsi' => 'required',
             'harga' => 'required',
             'lokasi' => 'required',
         ]);
 
-        if ($Validator->fails()) {
-            return response()->json($Validator->errors(), 422);
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
         }
 
         $fishing = Fishing::find($id);
 
-        if ($request->hasFile('gambar')) {
-            $image = $request->file('gambar');
+        if (!$fishing) {
+            return response()->json(['message' => 'Data Ikan tidak ditemukan'], 404);
+        }
+
+        if ($request->hasFile('image')) {
+            $image = $request->file('image');
             $image->storeAs('public/fishings', $image->hashName());
-            Storage::delete('public/fishings/' . basename($fishing->gambar));
+
+            Storage::delete('public/fishings/' . $fishing->image);
+
             $fishing->update([
                 'nama' => $request->nama,
                 'deskripsi' => $request->deskripsi,
-                'gambar' => $image->hashName(),
+                'image' => $image->hashName(),
                 'harga' => $request->harga,
-                'lokasi' => $request->lokasi
+                'lokasi' => $request->lokasi,
             ]);
         } else {
             $fishing->update([
                 'nama' => $request->nama,
                 'deskripsi' => $request->deskripsi,
                 'harga' => $request->harga,
-                'lokasi' => $request->lokasi
+                'lokasi' => $request->lokasi,
             ]);
         }
 
-        return new FishingResource(true, 'Data Ikan Berhasil Di Update', $fishing);
+        return new FishingResource(true, 'Data Ikan Berhasil Diupdate', $fishing);
     }
 
     /**
@@ -122,10 +118,14 @@ class FishingController extends Controller
     public function destroy(string $id)
     {
         $fishing = Fishing::find($id);
-        Storage::delete('public/fishings/' . basename($fishing->gambar));
+
+        if (!$fishing) {
+            return response()->json(['message' => 'Data Ikan tidak ditemukan'], 404);
+        }
+
+        Storage::delete('public/fishings/' . $fishing->image);
         $fishing->delete();
 
-        return new FishingResource(true,'Data Ikan Berhasil Di Hapus!', null);
-
+        return new FishingResource(true, 'Data Ikan Berhasil Dihapus!', null);
     }
 }
